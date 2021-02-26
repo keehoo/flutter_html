@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_html/html_parser.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:html/dom.dart' as dom;
 
 typedef ImageSourceMatcher = bool Function(
@@ -11,10 +10,8 @@ typedef ImageSourceMatcher = bool Function(
   dom.Element element,
 );
 
-ImageSourceMatcher base64DataUriMatcher() => (attributes, element) =>
-    _src(attributes) != null &&
-    _src(attributes).startsWith("data:image") &&
-    _src(attributes).contains("base64,");
+ImageSourceMatcher base64DataUriMatcher() =>
+    (attributes, element) => _src(attributes) != null && _src(attributes).startsWith("data:image") && _src(attributes).contains("base64,");
 
 ImageSourceMatcher networkSourceMatcher({
   List<String> schemas: const ["https", "http"],
@@ -25,16 +22,13 @@ ImageSourceMatcher networkSourceMatcher({
       if (_src(attributes) == null) return false;
       try {
         final src = Uri.parse(_src(attributes));
-        return schemas.contains(src.scheme) &&
-            (domains == null || domains.contains(src.host)) &&
-            (extension == null || src.path.endsWith(".$extension"));
+        return schemas.contains(src.scheme) && (domains == null || domains.contains(src.host)) && (extension == null || src.path.endsWith(".$extension"));
       } catch (e) {
         return false;
       }
     };
 
-ImageSourceMatcher assetUriMatcher() => (attributes, element) =>
-    _src(attributes) != null && _src(attributes).startsWith("asset:");
+ImageSourceMatcher assetUriMatcher() => (attributes, element) => _src(attributes) != null && _src(attributes).startsWith("asset:");
 
 typedef ImageRender = Widget Function(
   RenderContext context,
@@ -43,8 +37,7 @@ typedef ImageRender = Widget Function(
 );
 
 ImageRender base64ImageRender() => (context, attributes, element) {
-      final decodedImage =
-          base64.decode(_src(attributes).split("base64,")[1].trim());
+      final decodedImage = base64.decode(_src(attributes).split("base64,")[1].trim());
       precacheImage(
         MemoryImage(decodedImage),
         context.buildContext,
@@ -56,8 +49,7 @@ ImageRender base64ImageRender() => (context, attributes, element) {
         decodedImage,
         frameBuilder: (ctx, child, frame, _) {
           if (frame == null) {
-            return Text(_alt(attributes) ?? "",
-                style: context.style.generateTextStyle());
+            return Text(_alt(attributes) ?? "", style: context.style.generateTextStyle());
           }
           return child;
         },
@@ -71,7 +63,7 @@ ImageRender assetImageRender({
     (context, attributes, element) {
       final assetPath = _src(attributes).replaceFirst('asset:', '');
       if (_src(attributes).endsWith(".svg")) {
-        return SvgPicture.asset(assetPath);
+        return null;
       } else {
         return Image.asset(
           assetPath,
@@ -79,8 +71,7 @@ ImageRender assetImageRender({
           height: height ?? _height(attributes),
           frameBuilder: (ctx, child, frame, _) {
             if (frame == null) {
-              return Text(_alt(attributes) ?? "",
-                  style: context.style.generateTextStyle());
+              return Text(_alt(attributes) ?? "", style: context.style.generateTextStyle());
             }
             return child;
           },
@@ -109,8 +100,7 @@ ImageRender networkImageRender({
         },
       );
       Completer<Size> completer = Completer();
-      Image image =
-          Image.network(src, frameBuilder: (ctx, child, frame, _) {
+      Image image = Image.network(src, frameBuilder: (ctx, child, frame, _) {
         if (frame == null) {
           if (!completer.isCompleted) {
             completer.completeError("error");
@@ -124,8 +114,7 @@ ImageRender networkImageRender({
       image.image.resolve(ImageConfiguration()).addListener(
             ImageStreamListener((ImageInfo image, bool synchronousCall) {
               var myImage = image.image;
-              Size size =
-                  Size(myImage.width.toDouble(), myImage.height.toDouble());
+              Size size = Size(myImage.width.toDouble(), myImage.height.toDouble());
               if (!completer.isCompleted) {
                 completer.complete(size);
               }
@@ -146,16 +135,13 @@ ImageRender networkImageRender({
               height: height ?? _height(attributes),
               frameBuilder: (ctx, child, frame, _) {
                 if (frame == null) {
-                  return altWidget?.call(_alt(attributes)) ??
-                      Text(_alt(attributes) ?? "",
-                          style: context.style.generateTextStyle());
+                  return altWidget?.call(_alt(attributes)) ?? Text(_alt(attributes) ?? "", style: context.style.generateTextStyle());
                 }
                 return child;
               },
             );
           } else if (snapshot.hasError) {
-            return altWidget?.call(_alt(attributes)) ?? Text(_alt(attributes) ?? "",
-                style: context.style.generateTextStyle());
+            return altWidget?.call(_alt(attributes)) ?? Text(_alt(attributes) ?? "", style: context.style.generateTextStyle());
           } else {
             return loadingWidget?.call() ?? const CircularProgressIndicator();
           }
@@ -163,14 +149,14 @@ ImageRender networkImageRender({
       );
     };
 
-ImageRender svgNetworkImageRender() => (context, attributes, element) {
-      return SvgPicture.network(attributes["src"]);
-    };
+// ImageRender svgNetworkImageRender() => (context, attributes, element) {
+//       return SvgPicture.network(attributes["src"]);
+//     };
 
 final Map<ImageSourceMatcher, ImageRender> defaultImageRenders = {
   base64DataUriMatcher(): base64ImageRender(),
   assetUriMatcher(): assetImageRender(),
-  networkSourceMatcher(extension: "svg"): svgNetworkImageRender(),
+  // networkSourceMatcher(extension: "svg"): svgNetworkImageRender(),
   networkSourceMatcher(): networkImageRender(),
 };
 

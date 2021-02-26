@@ -9,10 +9,9 @@ import 'package:flutter_html/html_parser.dart';
 import 'package:flutter_html/src/html_elements.dart';
 import 'package:flutter_html/src/utils.dart';
 import 'package:flutter_html/src/widgets/iframe_unsupported.dart'
-  if (dart.library.io) 'package:flutter_html/src/widgets/iframe_mobile.dart'
-  if (dart.library.html) 'package:flutter_html/src/widgets/iframe_web.dart';
+    if (dart.library.io) 'package:flutter_html/src/widgets/iframe_mobile.dart'
+    if (dart.library.html) 'package:flutter_html/src/widgets/iframe_web.dart';
 import 'package:flutter_html/style.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:video_player/video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -24,17 +23,11 @@ import 'package:webview_flutter/webview_flutter.dart';
 abstract class ReplacedElement extends StyledElement {
   PlaceholderAlignment alignment;
 
-  ReplacedElement(
-      {String name,
-      Style style,
-      dom.Element node,
-      this.alignment = PlaceholderAlignment.aboveBaseline})
+  ReplacedElement({String name, Style style, dom.Element node, this.alignment = PlaceholderAlignment.aboveBaseline})
       : super(name: name, children: null, style: style, node: node);
 
   static List<String> parseMediaSources(List<dom.Element> elements) {
-    return elements
-        .where((element) => element.localName == 'source')
-        .map((element) {
+    return elements.where((element) => element.localName == 'source').map((element) {
       return element.attributes['src'];
     }).toList();
   }
@@ -89,7 +82,8 @@ class ImageContentElement extends ReplacedElement {
             child: widget,
             gestures: {
               MultipleTapGestureRecognizer: GestureRecognizerFactoryWithHandlers<MultipleTapGestureRecognizer>(
-                    () => MultipleTapGestureRecognizer(), (instance) {
+                () => MultipleTapGestureRecognizer(),
+                (instance) {
                   instance..onTap = () => context.parser.onImageTap?.call(src, context, attributes, element);
                 },
               ),
@@ -177,9 +171,7 @@ class VideoContentElement extends ReplacedElement {
             videoPlayerController: VideoPlayerController.network(
               src.first ?? "",
             ),
-            placeholder: poster != null
-                ? Image.network(poster)
-                : Container(color: Colors.black),
+            placeholder: poster != null ? Image.network(poster) : Container(color: Colors.black),
             autoPlay: autoplay,
             looping: loop,
             showControls: showControls,
@@ -206,11 +198,12 @@ class SvgContentElement extends ReplacedElement {
 
   @override
   Widget toWidget(RenderContext context) {
-    return SvgPicture.string(
-      data,
-      width: width,
-      height: height,
-    );
+    return Placeholder();
+    // return SvgPicture.string(
+    //   data,
+    //   width: width,
+    //   height: height,
+    // );
   }
 }
 
@@ -224,8 +217,7 @@ class EmptyContentElement extends ReplacedElement {
 class RubyElement extends ReplacedElement {
   dom.Element element;
 
-  RubyElement({@required this.element, String name = "ruby"})
-      : super(name: name, alignment: PlaceholderAlignment.middle);
+  RubyElement({@required this.element, String name = "ruby"}) : super(name: name, alignment: PlaceholderAlignment.middle);
 
   @override
   Widget toWidget(RenderContext context) {
@@ -247,15 +239,9 @@ class RubyElement extends ReplacedElement {
                   alignment: Alignment.bottomCenter,
                   child: Center(
                       child: Transform(
-                          transform:
-                              Matrix4.translationValues(0, -(rubyYPos), 0),
-                          child: Text(c.innerHtml,
-                              style: context.style
-                                  .generateTextStyle()
-                                  .copyWith(fontSize: rubySize))))),
-              Container(
-                  child: Text(textNode.text.trim(),
-                      style: context.style.generateTextStyle())),
+                          transform: Matrix4.translationValues(0, -(rubyYPos), 0),
+                          child: Text(c.innerHtml, style: context.style.generateTextStyle().copyWith(fontSize: rubySize))))),
+              Container(child: Text(textNode.text.trim(), style: context.style.generateTextStyle())),
             ],
           );
           widgets.add(widget);
